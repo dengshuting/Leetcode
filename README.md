@@ -1,2 +1,2 @@
-# LeetcodeReport
-LeetCode Report
+# Leetcode
+LeetCode
