@@ -14,6 +14,9 @@ Because nums[0] + nums[1] = 2 + 7 = 9,
 return [0, 1].
 ```
 
+## 2. 题目分析
+使用哈希表来达到O(n)时间O(n)空间。
+
 ## 3. Accepted Code
 ``` cpp
 class Solution {
