@@ -164,3 +164,48 @@ vector，deque是连续空间存储的，所以erase()操作会让指向erase的
 
 ### 4) 用new来为结构体分配空间
 在用struct实现的时候，我一开始是用Node node={back, nullptr, key, value}来创建新元素的，但是发现这样会导致每次调用put的时候创建的新元素都在同一个位置...因为离开了那个函数以后这个变量就被回收了，即使有指针指向它，那也是单方面的关系，指针失效了！所以这里应该要用new来创建（要记得和delete配套使用！！）才不会被回收。
+
+### 5) list的splice方法
+50ms的方法
+```cpp
+class LRUCache {
+    
+private: 
+    int cap; 
+    unordered_map<int,list<pair<int,int>>::iterator> map; 
+    list<pair<int,int>> mlist; 
+    
+public:
+    LRUCache(int capacity) {
+        cap = capacity; 
+    }
+    
+    int get(int key) {
+        auto it = map.find(key);
+        if(it ==map.end()) return -1; 
+        mlist.splice(mlist.begin(),mlist, it->second);
+        return it->second->second;
+    }
+    
+    void put(int key, int value) {
+         auto it = map.find(key);
+        if(it !=map.end()){
+            
+            it->second->second = value; 
+            mlist.splice(mlist.begin(),mlist,it->second);
+            return;
+        }
+        if(mlist.size()==cap){
+            auto node = mlist.back();
+            map.erase(node.first);
+            mlist.pop_back();
+        }
+        mlist.emplace_front(key,value);
+        map[key] = mlist.begin();
+        
+    }
+};
+```
+区别应该是用了splice方法，splice是可以快速的移动list中的元素。
+
+splice(list::iterator it1, list x, list::iterator it2), 其中it1是要移动到当前list的位置，x是要被移动的list，it2是要被移动的list中要被移动的元素，也有splice(list::iterator it1, list x, list::iterator it2， list::iterator it3)的形式，是移动x中[it2, it3)的元素。这里，第一种形式不会引起元素的构造与删除，而仅仅是改变指针的指向来操作，第二种会引起元素的构造与删除。
