@@ -17,6 +17,7 @@ TinyURL问题的关键是：
 这里做到one-to-one的方法是给每个要转换的originalURL分配一个逐步增加的ID，然后保存一个（ID, OriginalURL)的对应关系，再用函数进行ID和TinyURL之间的相互转换。转换方法其实就是62进制到19进制的转换，62进制的表达即是TinyURL，这样就做到了one-to-one以及可逆。
 
 ## 3. Accepted Code
+有一个问题..如果碰到的是已经shorten过的URL的话无法检测，而会继续往map里面存储，要解决这个问题的话要多存一个以originalURL为key，ID为value的map。
 ```cpp
 // 8ms
 class Solution {
@@ -71,3 +72,47 @@ private:
 // solution.decode(solution.encode(url));
 ```
 
+## 4. 讨论
+有4ms的方法，是使用了哈希表来存储TinyURL和OriginalURL的对应，TinyURL是随机的10位字符，做到one-to-one的方法是在存入map之前先检查这个TinyURL是否已经存在，如果存在则重新生成。但是这个如果在真正运用上到了tinyURL快被用尽的时候可能会要重新生成很多次吧....不过看起来会好看很多
+```cpp
+// 4ms
+class Solution {
+public:
+
+    unordered_map<string, string> m;
+    string d = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    
+    string generateRnd(int size){
+        string basic = "http://tinyurl.com/";
+        srand((int) time(0));
+        for(int i=0; i<10; ++i){
+            int r = rand() % size;
+            basic += d[r];
+        }
+        cout<<basic;
+        return basic;
+    }
+    
+    // Encodes a URL to a shortened URL.
+    string encode(string longUrl) {
+        string turl = generateRnd(d.size());
+        auto iter = m.begin();
+        iter = m.find(turl);
+        while(iter != m.end()){
+            turl = generateRnd(d.size());
+            iter = m.find(turl);
+        }
+        m[turl] = longUrl;
+        return turl;
+    }
+
+    // Decodes a shortened URL to its original URL.
+    string decode(string shortUrl) {
+        return m.find(shortUrl)->second;
+    }
+};
+
+// Your Solution object will be instantiated and called as such:
+// Solution solution;
+// solution.decode(solution.encode(url));
+```
